@@ -136,10 +136,12 @@ def _run_scraper(industry):
         'started_at': datetime.now().strftime('%H:%M:%S'), 'error': None, 'log': []
     })
     try:
+        env = {**os.environ, 'PYTHONIOENCODING': 'utf-8', 'PYTHONUTF8': '1'}
         proc = subprocess.Popen(
-            [sys.executable, script_path, industry],
+            [sys.executable, '-u', script_path, industry],
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-            text=True, cwd=os.path.dirname(__file__)
+            text=True, encoding='utf-8', errors='replace',
+            env=env, cwd=os.path.dirname(__file__)
         )
         for line in proc.stdout:
             line = line.strip()
