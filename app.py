@@ -127,8 +127,8 @@ def update_lead():
 # ==========================================
 # SERVE WEB CRM (Mission Hub)
 # ==========================================
+@app.route('/')
 @app.route('/mission-hub')
-@login_required
 def serve_dashboard():
     return send_from_directory('dashboard', 'index.html')
 

@@ -298,9 +298,60 @@
       font-size: 12px;
       border-top: 1px solid var(--border);
     }
+
+    /* ── LOGIN OVERLAY ── */
+    #loginOverlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(10,12,18,0.97);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    #loginOverlay.active { display: flex; }
+    .login-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 40px 48px;
+      width: 380px;
+      text-align: center;
+    }
+    .login-box .logo-icon { width:52px;height:52px;font-size:26px;margin:0 auto 18px; border-radius:14px;
+      background:linear-gradient(135deg,hsl(265,85%,60%),hsl(300,80%,55%));
+      display:flex;align-items:center;justify-content:center; }
+    .login-box h2 { font-size:22px;font-weight:700;margin-bottom:6px; }
+    .login-box p  { font-size:13px;color:var(--text-2);margin-bottom:28px; }
+    .login-input {
+      width: 100%; padding: 12px 16px;
+      background: var(--bg-hover); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text-1); font-size: 14px;
+      margin-bottom: 12px; outline: none; box-sizing: border-box;
+    }
+    .login-input:focus { border-color: var(--accent); }
+    .login-btn {
+      width:100%; padding:13px; background:var(--accent);
+      color:#fff; font-weight:700; font-size:15px;
+      border:none; border-radius:10px; cursor:pointer; margin-top:4px;
+    }
+    .login-btn:hover { opacity:.9; }
+    #loginError { color:var(--red);font-size:13px;margin-top:10px;min-height:18px; }
   </style>
 </head>
 <body>
+
+<!-- Login Overlay -->
+<div id="loginOverlay" class="active">
+  <div class="login-box">
+    <div class="logo-icon">⚡</div>
+    <h2>Mission Control</h2>
+    <p>AI Consulting CRM &mdash; Sign in to continue</p>
+    <input id="loginUser" class="login-input" type="text" placeholder="Username" value="admin" />
+    <input id="loginPass" class="login-input" type="password" placeholder="Password" />
+    <button class="login-btn" onclick="doLogin()">Sign In</button>
+    <div id="loginError"></div>
+  </div>
+</div>
 
 <header>
   <div class="logo">
@@ -398,8 +449,7 @@
         renderTable();
         document.getElementById('headerBadge').textContent = allData.length + ' Leads Loaded';
       } else if (res.status === 401) {
-        // Redirect to website if unauthorized
-        window.location.href = 'https://adnovationllp.com';
+        document.getElementById('loginOverlay').classList.add('active');
       }
     } catch(e) {
       document.getElementById('tableBody').innerHTML = `<tr><td colspan="9"><div class="empty-state"><h2>System Offline</h2><p>Could not connect to Mission Control. Ensure app.py is running.</p></div></td></tr>`;
@@ -570,6 +620,33 @@
   function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
+
+  async function doLogin() {
+    const user = document.getElementById('loginUser').value;
+    const pass = document.getElementById('loginPass').value;
+    const errEl = document.getElementById('loginError');
+    errEl.textContent = '';
+    try {
+      const r = await fetch('/api/login', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({username: user, password: pass})
+      });
+      const data = await r.json();
+      if (data.status === 'success') {
+        document.getElementById('loginOverlay').classList.remove('active');
+        loadData();
+      } else {
+        errEl.textContent = data.message || 'Invalid credentials';
+      }
+    } catch(e) {
+      errEl.textContent = 'Could not reach server.';
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
 
   loadData();
 </script>
