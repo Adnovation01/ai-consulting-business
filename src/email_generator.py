@@ -1,8 +1,31 @@
 import json
 import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from dotenv import load_dotenv
+from src.ai_engine import ask_gemini
 
 load_dotenv()
+
+def _gemini_email(company_name, niche, analysis, location, sender_name):
+    """Attempt Gemini-powered email. Returns dict or None."""
+    pains = "\n".join(f"- {p}" for p in analysis.get("hard_pain_points", [])[:3])
+    leak = analysis.get("estimated_revenue_leak", "significant revenue")
+    prompt = (
+        f"Write a short, highly personalised cold outreach email from {sender_name} (AI Strategy Consultant) "
+        f"to the {niche} business '{company_name}' in {location}.\n"
+        f"Their specific pain points are:\n{pains}\n"
+        f"Estimated monthly revenue leak: {leak}\n"
+        f"Rules: subject line first (prefix with 'Subject: '), then blank line, then body. "
+        f"Max 180 words. No bullet lists. Conversational, not salesy. End with a soft CTA for a quick call."
+    )
+    result = ask_gemini(prompt)
+    if not result:
+        return None
+    lines = result.split("\n", 2)
+    subject = lines[0].replace("Subject:", "").strip() if lines else f"Question for {company_name}"
+    body = "\n".join(lines[2:]).strip() if len(lines) > 2 else result
+    return {"subject": subject, "body": body}
 
 def generate_personalized_email(company_name, niche, analysis, location="your area"):
     """
@@ -17,8 +40,13 @@ def generate_personalized_email(company_name, niche, analysis, location="your ar
     fomo = analysis.get("fomo_intelligence", "")
 
     sender_name = os.getenv("YOUR_NAME", "Pranshu Mishra")
-    
-    # 1. Subject Line: Highly specific
+
+    # Try Gemini-powered email first
+    gemini_result = _gemini_email(clean_name, niche, analysis, location, sender_name)
+    if gemini_result:
+        return gemini_result
+
+    # 1. Subject Line: Highly specific (static fallback)
     subject = f"Question for {clean_name}"
     
     # 2. Body: Hooking them with their unique audit data

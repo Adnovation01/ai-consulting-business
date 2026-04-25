@@ -1,11 +1,14 @@
 """
-Synthetic Deep Audit Generator
-Generates high-quality, research-backed strategic audits for dental practices
-WITHOUT requiring an external AI API. Uses domain expertise encoded in logic.
+Deep Audit Generator
+Generates strategic audits for any industry.
+Uses Gemini AI when key is configured; falls back to domain-expertise templates.
 """
 import json
 import os
 import random
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from src.ai_engine import ask_gemini
 
 # ─── Domain Knowledge: Common dental market insights by city tier ───
 MARKET_DATA = {
@@ -106,7 +109,7 @@ def generate_audit(lead):
     # Use market data to personalize where available
     competitors = market_info.get("top_competitors", ["Regional DSOs", "Comfort Dental"])
     
-    return {
+    static_audit = {
         "hard_pain_points": selected_pains,
         "estimated_revenue_leak": generate_revenue_leak(location),
         "market_gap_analysis": f"{market_gap} Key local competitors include: {', '.join(competitors[:2])}.",
@@ -114,8 +117,20 @@ def generate_audit(lead):
         "fomo_intelligence": fomo
     }
 
+    # Enhance market gap analysis with Gemini if available
+    gemini_prompt = (
+        f"You are a sharp AI business consultant. In 2 sentences max, write a specific market gap insight "
+        f"for a {lead.get('niche', 'local')} business called '{lead.get('name')}' in {location}. "
+        f"Focus on how AI automation could capture missed revenue. Be direct, data-driven, no fluff."
+    )
+    ai_insight = ask_gemini(gemini_prompt)
+    if ai_insight:
+        static_audit["market_gap_analysis"] = ai_insight
+
+    return static_audit
+
 def run_audit(input_file="data/leads.json", output_file="data/researched_leads.json"):
-    print("AUDIT: Running high-depth synthetic strategic audit engine...")
+    print("AUDIT: Running deep strategic audit engine (Gemini-enhanced where configured)...")
     
     if not os.path.exists(input_file):
         print(f"Error: {input_file} not found.")

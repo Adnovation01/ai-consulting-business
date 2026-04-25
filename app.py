@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, session, send_from_directory
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_cors import CORS
+from dotenv import load_dotenv
 import threading
 import subprocess
 import os
@@ -8,8 +9,10 @@ import sys
 import json
 from src.database_manager import init_db, get_all_leads, update_lead_action
 
+load_dotenv()
+
 app = Flask(__name__)
-app.secret_key = 'super_secret_key_change_in_production'
+app.secret_key = os.getenv('SECRET_KEY', 'fallback-dev-key-change-in-production')
 CORS(app) 
 
 # Ensure DB is ready on startup
@@ -136,6 +139,6 @@ def serve_dashboard_files(path):
 
 
 if __name__ == '__main__':
-    print("🚀 AI Consulting Engine Online Backend is starting...")
-    # Allows external users to access if running on a shared network or deployed
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    print("AI Consulting Engine Online Backend is starting...")
+    port = int(os.getenv('PORT', 5000))
+    app.run(debug=os.getenv('FLASK_DEBUG', 'true').lower() == 'true', host='0.0.0.0', port=port)

@@ -1,7 +1,10 @@
 requests
 beautifulsoup4
-openai
+google-generativeai
 pandas
 python-dotenv
 flask
 flask-login
+flask-cors
+openpyxl
+playwright
