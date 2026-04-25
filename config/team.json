@@ -1,0 +1,12 @@
+{
+  "users": {
+    "admin": {
+      "password": "team_password_123",
+      "role": "manager"
+    },
+    "pranshu": {
+      "password": "adnovation_secure_2024",
+      "role": "owner"
+    }
+  }
+}

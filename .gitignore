@@ -1,0 +1,28 @@
+# Secrets
+.env
+
+# Sensitive data
+data/
+*.xlsx
+dashboard/crm_data.json
+
+# Generated
+temp_site.html
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/

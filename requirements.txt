@@ -1,0 +1,7 @@
+requests
+beautifulsoup4
+openai
+pandas
+python-dotenv
+flask
+flask-login

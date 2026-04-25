@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Consulting CRM | Lead Command Center</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base:    hsl(220, 20%, 8%);
+      --bg-card:    hsl(220, 18%, 12%);
+      --bg-hover:   hsl(220, 18%, 16%);
+      --border:     hsl(220, 15%, 20%);
+      --accent:     hsl(265, 85%, 65%);
+      --accent-glow:hsl(265, 85%, 65%, 0.25);
+      --green:      hsl(145, 60%, 50%);
+      --orange:     hsl(35, 95%, 60%);
+      --red:        hsl(0, 75%, 60%);
+      --text-1:     hsl(220, 15%, 95%);
+      --text-2:     hsl(220, 10%, 65%);
+      --text-3:     hsl(220, 8%, 45%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-1);
+      min-height: 100vh;
+    }
+
+    /* ── TOP NAV ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 36px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, hsl(265,85%,60%), hsl(300,80%,55%));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .logo h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+    .logo span { display: block; font-size: 11px; color: var(--text-3); font-weight: 400; }
+
+    .header-meta {
+      display: flex; align-items: center; gap: 16px;
+    }
+    .badge {
+      background: hsl(265,85%,65%,0.15);
+      color: var(--accent);
+      border: 1px solid hsl(265,85%,65%,0.3);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ── STATS ── */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      padding: 24px 36px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), hsl(300,80%,60%));
+    }
+    .stat-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.8px; }
+    .stat-value { font-size: 30px; font-weight: 800; margin-top: 6px; letter-spacing: -1px; }
+    .stat-sub { font-size: 12px; color: var(--text-2); margin-top: 4px; }
+    .stat-green .stat-value { color: var(--green); }
+    .stat-orange .stat-value { color: var(--orange); }
+    .stat-purple .stat-value { color: var(--accent); }
+
+    /* ── CONTROLS ── */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 36px 20px;
+      flex-wrap: wrap;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 220px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      color: var(--text-1);
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-box:focus { border-color: var(--accent); }
+    .search-box::placeholder { color: var(--text-3); }
+
+    select {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text-1);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+    }
+    select:focus { border-color: var(--accent); }
+
+    .btn {
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .btn-accent {
+      background: linear-gradient(135deg, hsl(265,85%,60%), hsl(300,80%,55%));
+      color: white;
+    }
+    .btn-accent:hover { transform: translateY(-1px); box-shadow: 0 4px 20px var(--accent-glow); }
+    .btn-ghost {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      padding: 0 36px 40px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    thead tr {
+      background: hsl(220, 18%, 14%);
+    }
+    th {
+      padding: 14px 16px;
+      font-size: 11px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 600;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--bg-hover); }
+    td {
+      padding: 13px 16px;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    /* Individual cell styles */
+    .td-name { font-weight: 600; color: var(--text-1); max-width: 180px; }
+    .td-name small { display: block; font-size: 11px; color: var(--text-3); font-weight: 400; margin-top: 2px; }
+    .td-website a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .td-website a:hover { text-decoration: underline; }
+    .td-website small {
+      display: block;
+      font-size: 11px;
+      color: var(--text-2);
+      margin-top: 3px;
+    }
+    .td-leak {
+      font-weight: 700;
+      color: var(--orange);
+      white-space: nowrap;
+      font-size: 13px;
+    }
+    .td-state {
+      background: hsl(220,18%,16%);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-2);
+      white-space: nowrap;
+      display: inline-block;
+    }
+
+    /* Action badge */
+    .action-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .action-ready {
+      background: hsl(145, 60%, 50%, 0.12);
+      color: var(--green);
+      border: 1px solid hsl(145, 60%, 50%, 0.25);
+    }
+    .action-send {
+      background: hsl(265, 85%, 65%, 0.15);
+      color: var(--accent);
+      border: 1px solid hsl(265, 85%, 65%, 0.3);
+      animation: pulse 2s infinite;
+    }
+    .action-sent {
+      background: hsl(220, 15%, 20%);
+      color: var(--text-3);
+      border: 1px solid var(--border);
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 hsl(265,85%,65%,0.3); }
+      50%       { box-shadow: 0 0 0 4px hsl(265,85%,65%,0); }
+    }
+
+    /* Status dot */
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-green { background: var(--green); }
+    .dot-orange { background: var(--orange); }
+    .dot-gray { background: var(--text-3); }
+
+    /* Pain point tooltip area */
+    .td-pain {
+      max-width: 260px;
+      font-size: 12px;
+      color: var(--text-2);
+      line-height: 1.5;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-3);
+    }
+    .empty-state h2 { font-size: 18px; margin-bottom: 8px; color: var(--text-2); }
+
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-3);
+      font-size: 12px;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <div>
+      <h1>AI Consulting CRM</h1>
+      <span>Lead Command Center</span>
+    </div>
+  </div>
+  <div class="header-meta">
+    <span class="badge" id="headerBadge">Loading...</span>
+    <button class="btn btn-ghost" onclick="exportCSV()">Export CSV</button>
+    <button class="btn btn-accent" onclick="markSelected()">Mark → SEND</button>
+  </div>
+</header>
+
+<!-- Stats Strip -->
+<div class="stats-strip">
+  <div class="stat-card">
+    <div class="stat-label">Total Leads</div>
+    <div class="stat-value" id="statTotal">—</div>
+    <div class="stat-sub">Across all states</div>
+  </div>
+  <div class="stat-card stat-orange">
+    <div class="stat-label">Avg Revenue Leak</div>
+    <div class="stat-value" id="statAvgLeak">—</div>
+    <div class="stat-sub">Per practice / month</div>
+  </div>
+  <div class="stat-card stat-green">
+    <div class="stat-label">Ready to Outreach</div>
+    <div class="stat-value" id="statReady">—</div>
+    <div class="stat-sub">Status: READY</div>
+  </div>
+  <div class="stat-card stat-purple">
+    <div class="stat-label">Emails Sent</div>
+    <div class="stat-value" id="statSent">—</div>
+    <div class="stat-sub">Outreach complete</div>
+  </div>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <input class="search-box" id="searchInput" type="text" placeholder="Search by name, website, or state..." oninput="applyFilters()" />
+  <select id="stateFilter" onchange="applyFilters()">
+    <option value="">All States</option>
+  </select>
+  <select id="actionFilter" onchange="applyFilters()">
+    <option value="">All Actions</option>
+    <option value="READY">READY</option>
+    <option value="SEND">SEND</option>
+    <option value="SENT">SENT</option>
+  </select>
+  <button class="btn btn-ghost" onclick="resetFilters()">Clear Filters</button>
+</div>
+
+<!-- Table -->
+<div class="table-wrap">
+  <table id="crmTable">
+    <thead>
+      <tr>
+        <th><input type="checkbox" id="selectAll" onclick="toggleAll(this)" /></th>
+        <th>#</th>
+        <th>Practice Name</th>
+        <th>Website & Email</th>
+        <th>State</th>
+        <th>Revenue Leak / mo</th>
+        <th>Top Pain Point</th>
+        <th>Action</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+
+<div class="footer">
+  AI Consulting CRM &bull; Dentist Niche &bull; Nationwide Campaign &bull; Data auto-synced from <strong>Dentist_Industry_Master.xlsx → CRM_SYNC</strong>
+</div>
+
+<script>
+  let allData = [];
+  let filteredData = [];
+
+  async function loadData() {
+    try {
+      // Changed to fetch from the live API route
+      const res = await fetch('/api/leads');
+      const json = await res.json();
+      
+      if (json.status === 'success') {
+        allData = json.data;
+        filteredData = [...allData];
+        populateStateFilter();
+        updateStats();
+        renderTable();
+        document.getElementById('headerBadge').textContent = allData.length + ' Leads Loaded';
+      } else if (res.status === 401) {
+        // Redirect to website if unauthorized
+        window.location.href = 'https://adnovationllp.com';
+      }
+    } catch(e) {
+      document.getElementById('tableBody').innerHTML = `<tr><td colspan="9"><div class="empty-state"><h2>System Offline</h2><p>Could not connect to Mission Control. Ensure app.py is running.</p></div></td></tr>`;
+    }
+  }
+
+  function populateStateFilter() {
+    const states = [...new Set(allData.map(r => r['State']))].filter(Boolean).sort();
+    const sel = document.getElementById('stateFilter');
+    states.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s; opt.textContent = s.replace(/_/g, ' ');
+      sel.appendChild(opt);
+    });
+  }
+
+  function updateStats() {
+    document.getElementById('statTotal').textContent = filteredData.length;
+
+    // Parse revenue leaks
+    const leaks = filteredData.map(r => {
+      const m = (r['leak_amount'] || '').toString().match(/\$([0-9,]+)/);
+      return m ? parseInt(m[1].replace(/,/g,'')) : 0;
+    }).filter(v => v > 0);
+    const avg = leaks.length ? Math.round(leaks.reduce((a,b) => a+b, 0) / leaks.length) : 0;
+    document.getElementById('statAvgLeak').textContent = avg ? '$' + avg.toLocaleString() : '—';
+
+    document.getElementById('statReady').textContent = filteredData.filter(r => (r['action']||'').toUpperCase() === 'READY').length;
+    document.getElementById('statSent').textContent = filteredData.filter(r => (r['action']||'').toUpperCase() === 'SENT').length;
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    if (!filteredData.length) {
+      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><h2>No leads match your filters</h2><p>Try adjusting your search or clear the filters.</p></div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filteredData.map((row, i) => {
+      const action = (row['action'] || 'READY').toString().trim().toUpperCase();
+      let actionClass = 'action-ready';
+      if (action === 'SEND') actionClass = 'action-send';
+      if (action === 'SENT') actionClass = 'action-sent';
+
+      const dotClass = action === 'SENT' ? 'dot-gray' : (action === 'SEND' ? 'dot-orange' : 'dot-green');
+      const status = row['status'] || 'Pending Outreach';
+      const leak = row['leak_amount'] || '—';
+      const location = (row['location'] || '').replace(/_/g, ' ');
+      const name = (row['name'] || '—');
+      const website = row['website'] || '#';
+      const email = row['email'] || 'Pending';
+      const shortUrl = website.replace(/https?:\/\/(www\.)?/, '').split('/')[0];
+
+      return `
+        <tr>
+          <td><input type="checkbox" class="row-check" data-idx="${i}" data-id="${row['id']}" /></td>
+          <td style="color:var(--text-3);font-size:12px;">${row['id']}</td>
+          <td class="td-name">${escHtml(name)}<small>${escHtml(location)}</small></td>
+          <td class="td-website">
+            <a href="${escHtml(website)}" target="_blank">${escHtml(shortUrl)}</a>
+            <small>${escHtml(email)}</small>
+          </td>
+          <td><span class="td-state">${escHtml(location)}</span></td>
+          <td class="td-leak">${escHtml(leak.toString())}</td>
+          <td class="td-pain">${escHtml(getPainPrefix(row))}</td>
+          <td><span class="action-badge ${actionClass}"><span class="dot ${dotClass}"></span>${action}</span></td>
+          <td style="font-size:12px;color:var(--text-2);">${escHtml(status)}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function getPainPrefix(row) {
+    try {
+        const points = JSON.parse(row['pain_points'] || '[]');
+        return points[0] || 'No specific pain points identified yet.';
+    } catch(e) {
+        return row['pain_points'] || 'Reviewing site...';
+    }
+  }
+
+  function applyFilters() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const state = document.getElementById('stateFilter').value;
+    const action = document.getElementById('actionFilter').value;
+
+    filteredData = allData.filter(row => {
+      const name = (row['name'] || '').toLowerCase();
+      const website = (row['website'] || '').toLowerCase();
+      const location = (row['location'] || '');
+      const rowAction = (row['action'] || '').toString().toUpperCase();
+
+      const matchSearch = !search || name.includes(search) || website.includes(search);
+      const matchState = !state || location.includes(state);
+      const matchAction = !action || rowAction === action;
+
+      return matchSearch && matchState && matchAction;
+    });
+
+    updateStats();
+    renderTable();
+  }
+
+  function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('stateFilter').value = '';
+    document.getElementById('actionFilter').value = '';
+    filteredData = [...allData];
+    updateStats();
+    renderTable();
+  }
+
+  function toggleAll(cb) {
+    document.querySelectorAll('.row-check').forEach(c => c.checked = cb.checked);
+  }
+
+  async function markSelected() {
+    const checked = document.querySelectorAll('.row-check:checked');
+    let count = 0;
+    
+    for (const c of checked) {
+      const idx = parseInt(c.getAttribute('data-idx'));
+      const dbId = c.getAttribute('data-id');
+      const lead = filteredData[idx];
+      
+      if (lead) {
+        try {
+          const resp = await fetch('/api/update-lead', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              lead_id: dbId,
+              action: 'SEND'
+            })
+          });
+          
+          if (resp.ok) {
+            lead['Action'] = 'SEND';
+            const orig = allData.find(r => r['Lead Name'] === lead['Lead Name']);
+            if (orig) orig['Action'] = 'SEND';
+            count++;
+          }
+        } catch (err) {
+          console.error("Failed to update lead:", err);
+        }
+      }
+    }
+    
+    if (count) {
+      updateStats();
+      renderTable();
+      alert(`Successfully pushed ${count} lead(s) to the outreach queue.`);
+    } else {
+      alert('Select at least one lead using the checkboxes first.');
+    }
+  }
+
+  function exportCSV() {
+    const headers = ['Lead Name','Website','Email','State','Leak ($)','Action','Status'];
+    const rows = filteredData.map(r => headers.map(h => `"${(r[h]||'').toString().replace(/"/g,'""')}"`).join(','));
+    const csv = [headers.join(','), ...rows].join('\n');
+    const a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = 'CRM_Export.csv';
+    a.click();
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  loadData();
+</script>
+</body>
+</html>
