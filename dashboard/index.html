@@ -299,6 +299,58 @@
       border-top: 1px solid var(--border);
     }
 
+    /* ── MISSION CONTROL PANEL ── */
+    .mission-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      padding: 0 36px 24px;
+    }
+    .mc-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 22px;
+    }
+    .mc-title {
+      font-size: 11px; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .mc-title span { font-size: 14px; }
+    .mc-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .mc-input {
+      flex: 1; padding: 9px 12px;
+      background: var(--bg-hover); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text-1); font-size: 13px; outline: none;
+    }
+    .mc-input:focus { border-color: var(--accent); }
+    .mc-btn {
+      padding: 9px 18px; border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+    }
+    .mc-btn-green  { background: var(--green);  color: #000; }
+    .mc-btn-orange { background: var(--orange); color: #000; }
+    .mc-btn-purple { background: var(--accent); color: #fff; }
+    .mc-btn-red    { background: var(--red);    color: #fff; }
+    .mc-btn-ghost  { background: var(--bg-hover); color: var(--text-2); border: 1px solid var(--border); }
+    .mc-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .mc-status {
+      font-size: 12px; color: var(--text-2); padding: 8px 10px;
+      background: var(--bg-hover); border-radius: 8px; min-height: 36px;
+      word-break: break-word; line-height: 1.5;
+    }
+    .mc-status.running { color: var(--orange); }
+    .mc-status.ok      { color: var(--green); }
+    .mc-status.err     { color: var(--red); }
+    .mc-log {
+      font-size: 11px; color: var(--text-3); margin-top: 8px;
+      max-height: 80px; overflow-y: auto; font-family: monospace;
+      background: var(--bg-hover); border-radius: 6px; padding: 6px 8px;
+    }
+    .pulse { animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
     /* ── LOGIN OVERLAY ── */
     #loginOverlay {
       display: none;
@@ -390,6 +442,59 @@
     <div class="stat-value" id="statSent">—</div>
     <div class="stat-sub">Outreach complete</div>
   </div>
+</div>
+
+<!-- ══ MISSION CONTROL PANEL ══ -->
+<div class="mission-panel">
+
+  <!-- Card 1: Scraper -->
+  <div class="mc-card">
+    <div class="mc-title"><span>🕵️</span> Lead Scraper Engine</div>
+    <div class="mc-row">
+      <input class="mc-input" id="industryInput" type="text" placeholder="Industry (e.g. dentist, lawyer)" value="dentist" />
+      <button class="mc-btn mc-btn-green" id="scrapeBtn" onclick="startScraping()">Launch</button>
+      <button class="mc-btn mc-btn-red" id="stopBtn" onclick="stopScraping()" style="display:none">Stop</button>
+    </div>
+    <div class="mc-status" id="scraperStatus">Idle — ready to scrape nationwide</div>
+    <div class="mc-log" id="scraperLog" style="display:none"></div>
+  </div>
+
+  <!-- Card 2: Email Campaign -->
+  <div class="mc-card">
+    <div class="mc-title"><span>📧</span> Email Outreach Engine</div>
+    <div class="mc-row">
+      <button class="mc-btn mc-btn-orange" id="emailBtn" onclick="sendEmails()" style="width:100%">
+        Send Emails to SEND-Marked Leads
+      </button>
+    </div>
+    <div style="font-size:11px;color:var(--text-3);margin-bottom:8px;">
+      Select leads in the table → Mark → SEND → then fire here
+    </div>
+    <div class="mc-status" id="emailStatus">Idle — no campaign running</div>
+  </div>
+
+  <!-- Card 3: Export & Tools -->
+  <div class="mc-card">
+    <div class="mc-title"><span>📦</span> Export & Tools</div>
+    <div class="mc-row">
+      <button class="mc-btn mc-btn-purple" onclick="exportExcel()" style="flex:1">
+        Export Excel
+      </button>
+      <button class="mc-btn mc-btn-ghost" onclick="exportCSV()" style="flex:1">
+        Export CSV
+      </button>
+    </div>
+    <div class="mc-row" style="margin-top:4px">
+      <button class="mc-btn mc-btn-ghost" onclick="loadData()" style="flex:1">
+        Refresh Leads
+      </button>
+      <button class="mc-btn mc-btn-ghost" onclick="doLogout()" style="flex:1">
+        Sign Out
+      </button>
+    </div>
+    <div class="mc-status" id="exportStatus">Excel includes all 50 state tabs + CRM_SYNC</div>
+  </div>
+
 </div>
 
 <!-- Controls -->
@@ -621,6 +726,137 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  // ── SCRAPER ──────────────────────────────────────────────
+  let scraperPoll = null;
+
+  async function startScraping() {
+    const industry = document.getElementById('industryInput').value.trim() || 'dentist';
+    const btn = document.getElementById('scrapeBtn');
+    const stop = document.getElementById('stopBtn');
+    btn.disabled = true;
+    try {
+      const r = await fetch('/api/start-scraping', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({industry})
+      });
+      const d = await r.json();
+      if (d.status === 'success') {
+        setStatus('scraperStatus', `Scraping ${industry}...`, 'running');
+        document.getElementById('scraperLog').style.display = 'block';
+        stop.style.display = '';
+        scraperPoll = setInterval(pollScraper, 2500);
+      } else {
+        setStatus('scraperStatus', d.message, 'err');
+        btn.disabled = false;
+      }
+    } catch(e) { setStatus('scraperStatus', 'Could not reach server', 'err'); btn.disabled = false; }
+  }
+
+  async function stopScraping() {
+    await fetch('/api/stop-scraping', {method:'POST'});
+    clearInterval(scraperPoll);
+    document.getElementById('scrapeBtn').disabled = false;
+    document.getElementById('stopBtn').style.display = 'none';
+    setStatus('scraperStatus', 'Stopped by user', '');
+  }
+
+  async function pollScraper() {
+    try {
+      const r = await fetch('/api/scraper-status');
+      const d = await r.json();
+      const logEl = document.getElementById('scraperLog');
+      if (d.log && d.log.length) logEl.innerHTML = d.log.slice(-6).map(l => escHtml(l)).join('<br>');
+      if (d.running) {
+        setStatus('scraperStatus',
+          `<span class="pulse">●</span> ${escHtml(d.current_state)} &bull; ${d.leads_found} leads found`, 'running');
+      } else {
+        clearInterval(scraperPoll);
+        document.getElementById('scrapeBtn').disabled = false;
+        document.getElementById('stopBtn').style.display = 'none';
+        if (d.error) {
+          setStatus('scraperStatus', `Error: ${escHtml(d.error)}`, 'err');
+        } else {
+          setStatus('scraperStatus', `Done ✓ — ${d.leads_found} leads saved to database`, 'ok');
+        }
+        loadData();
+      }
+    } catch(e) {}
+  }
+
+  // ── EMAIL CAMPAIGN ────────────────────────────────────────
+  let emailPoll = null;
+
+  async function sendEmails() {
+    const btn = document.getElementById('emailBtn');
+    btn.disabled = true;
+    try {
+      const r = await fetch('/api/send-emails', {method:'POST'});
+      const d = await r.json();
+      if (d.status === 'success') {
+        setStatus('emailStatus', `Campaign running...`, 'running');
+        emailPoll = setInterval(pollEmail, 2000);
+      } else {
+        setStatus('emailStatus', d.message, 'err');
+        btn.disabled = false;
+      }
+    } catch(e) { setStatus('emailStatus', 'Could not reach server', 'err'); btn.disabled = false; }
+  }
+
+  async function pollEmail() {
+    try {
+      const r = await fetch('/api/email-status');
+      const d = await r.json();
+      if (d.running) {
+        setStatus('emailStatus',
+          `<span class="pulse">●</span> Sending to ${escHtml(d.current||'...')} &bull; ${d.sent}/${d.total} sent`, 'running');
+      } else {
+        clearInterval(emailPoll);
+        document.getElementById('emailBtn').disabled = false;
+        if (d.errors > 0) {
+          setStatus('emailStatus', `Done — ${d.sent} sent, ${d.errors} errors`, d.sent > 0 ? 'ok' : 'err');
+        } else {
+          setStatus('emailStatus', `Done ✓ — ${d.sent} emails sent successfully`, 'ok');
+        }
+        loadData();
+      }
+    } catch(e) {}
+  }
+
+  // ── EXPORT EXCEL ──────────────────────────────────────────
+  async function exportExcel() {
+    setStatus('exportStatus', 'Building Excel file...', 'running');
+    try {
+      const r = await fetch('/api/export-excel');
+      if (r.ok) {
+        const blob = await r.blob();
+        const cd = r.headers.get('content-disposition') || '';
+        const name = cd.match(/filename=([^;]+)/)?.[1] || 'CRM_Export.xlsx';
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name;
+        a.click();
+        setStatus('exportStatus', `Downloaded: ${name}`, 'ok');
+      } else {
+        const d = await r.json();
+        setStatus('exportStatus', d.message || 'Export failed', 'err');
+      }
+    } catch(e) { setStatus('exportStatus', 'Export failed: ' + e, 'err'); }
+  }
+
+  // ── LOGOUT ────────────────────────────────────────────────
+  async function doLogout() {
+    await fetch('/api/logout', {method:'POST'});
+    document.getElementById('loginOverlay').classList.add('active');
+  }
+
+  // ── HELPERS ───────────────────────────────────────────────
+  function setStatus(id, html, cls) {
+    const el = document.getElementById(id);
+    el.innerHTML = html;
+    el.className = 'mc-status' + (cls ? ' ' + cls : '');
+  }
+
+  // ── AUTH ──────────────────────────────────────────────────
   async function doLogin() {
     const user = document.getElementById('loginUser').value;
     const pass = document.getElementById('loginPass').value;
